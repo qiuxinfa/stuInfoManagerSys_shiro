@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/css/jquery.dataTables.min.css}" />
+    <link rel="stylesheet" th:href="@{/css/matrix-style.css}" />
+    <link rel="stylesheet" th:href="@{/css/matrix-media.css}" />
+    <link rel="stylesheet" th:href="@{/css/metroStyle.css}" type="text/css">
+    <link th:href="@{/font-awesome/css/font-awesome.css}" rel="stylesheet" />
+    <title>学生管理</title>
+</head>
+<body>
+
+<!--Header-part-->
+<div id="header">
+    <h1><a href="dashboard.html">学生管理系统</a></h1>
+</div>
+<!--close-Header-part-->
+
+<!--top-Header-menu-->
+<div th:include="common/top :: top"></div>
+<div th:include="common/menu :: menu"></div>
+<div id="content">
+    <div id="content-header">
+        <div id="breadcrumb"> <a href="#" title="Go to Home" class="tip-bottom"><i class="icon-home"></i> Home</a> <a href="#" class="current">Tables</a> </div>
+    </div>
+    <div class="container-fluid">
+        <hr>
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="widget-box">
+                    <div class="widget-title"> <span class="icon"><i class="icon-th"></i></span>
+                        <h5>学生列表</h5>
+                    </div>
+                    <form class="form-inline">
+                        <div class="form-group">
+                            <label >姓名:</label>
+                            <input type="text" class="form-control" id="name-search" placeholder="学生姓名"/>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">班级:</label>
+                            <select id="clazz-search"  class="form-control">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">专业:</label>
+                            <select id="major-search"  class="form-control">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">学院:</label>
+                            <select id="institute-search"  class="form-control">
+                            </select>
+                        </div>
+                        <button type="button"  onclick="search();" class="btn btn-primary">查询</button>
+                        <button type="button" shiro:hasPermission="/student/add" onclick="$('#addstudent').modal();" class="btn btn-info" style="float: right; margin-right: 1px;">新增</button>
+                        <button type="button" shiro:hasPermission="/student/delete" onclick="delById();" class="btn btn-info" style="float: right; margin-right: 1px;">删除</button>
+                        <button type="button" shiro:hasPermission="/student/update" onclick="initUpdateStudent();" class="btn btn-info" style="float: right; margin-right: 1px;">修改</button>
+                    </form>
+                    <div class="widget-content nopadding">
+                        <table class="table table-bordered data-table" id="datatable" >
+                            <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" class="checkall" />
+                                </th>
+                                <th>ID</th>
+                                <th>姓名</th>
+                                <th>性别</th>
+                                <th>年龄</th>
+                                <th>电话</th>
+                                <th>所属班级</th>
+                                <th>所属专业</th>
+                                <th>所属学院</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--添加弹框-->
+<div class="modal fade" id="addstudent" tabindex="-1" role="dialog" aria-labelledby="addstudentLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="addstudentLabel">添加学生</h4>
+            </div>
+            <div class="modal-body">
+                <form id="roleForm">
+                    <div class="form-group">
+                        <label  class="control-label">所属学院:</label>
+                        <select  id="instituteId" onchange="changeInstitute()">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label  class="control-label">所属专业:</label>
+                        <select  id="majorId" onchange="changeMajor()">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label  class="control-label">所属班级:</label>
+                        <select  id="clazzId">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">姓名:</label>
+                        <input type="text" class="form-control" name="studentName" id="studentName"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">性别:</label>
+                        <select id="sex">
+                            <option value="1">男</option>
+                            <option value="2">女</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">年龄:</label>
+                        <input type="text" class="form-control" name="age" id="age"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">电话:</label>
+                        <input type="text" class="form-control" name="phone" id="phone"/>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" onclick="addStudent();" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--/添加弹框-->
+
+<!--修改弹框-->
+<div class="modal fade" id="updatestudent" tabindex="-1" role="dialog" aria-labelledby="updatestudentLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="updatestudentLabel">修改学生</h4>
+            </div>
+            <div class="modal-body">
+                <form id="studentForm">
+                    <input type="hidden" id="id2"/>
+                    <div class="form-group">
+                        <label  class="control-label">所属学院:</label>
+                        <select  id="instituteId2" onchange="changeInstitute('2')">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label  class="control-label">所属专业:</label>
+                        <select  id="majorId2" onchange="changeMajor('2')">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label  class="control-label">所属班级:</label>
+                        <select  id="clazzId2">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">姓名:</label>
+                        <input type="text" class="form-control" name="studentName" id="studentName2"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">性别:</label>
+                        <select id="sex2">
+                            <option value="1">男</option>
+                            <option value="2">女</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">年龄:</label>
+                        <input type="text" class="form-control" name="age" id="age2"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">电话:</label>
+                        <input type="text" class="form-control" name="phone" id="phone2"/>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" onclick="updateStudent();" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--/修改弹框-->
+
+<!--Footer-part-->
+<div class="row-fluid">
+    <div id="footer" class="span12"> 2019 &copy; qiuxinfa <a href="http://themedesigner.in/">Themedesigner.in</a> </div>
+</div>
+<!--end-Footer-part-->
+<script type="text/javascript" th:src="@{/js/jquery-1.11.2.min.js}"></script>
+<script th:src="@{/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/jquery.dataTables.min.js}"></script>
+<script th:src="@{/js/layer.js}"></script>
+<script type="text/javascript" th:src="@{/js/jquery.ztree.core.js}"></script>
+<script type="text/javascript" th:src="@{/js/jquery.ztree.excheck.js}"></script>
+
+<script type="text/javascript">
+    $(".checkall").click(function () {
+        var check = $(this).prop("checked");
+        $(".checkchild").prop("checked", check);
+    });
+    var table;
+    $(document).ready(function() {
+        //初始化学院下拉选择框
+        initInstituteSelect();
+        //初始化专业下拉选择框
+        initmajorSelect();
+        //初始化班级下拉选择框
+        initClazzSelect();
+
+        table = $('#datatable').DataTable( {
+            "dom": '<"top"i>rt<"bottom"flp><"clear">',
+            "searching" : false,
+            "bJQueryUI": true,
+            "sPaginationType": "full_numbers",
+            "serverSide": true,//开启服务器模式，使用服务器端处理配置datatable
+            "processing": true,//开启读取服务器数据时显示正在加载中……特别是大数据量的时候，开启此功能比较好
+            ajax : function(data, callback, settings) {
+                //封装请求参数
+                var param = getQueryCondition(data);
+                $.ajax({
+                    type: "GET",
+                    url: '/getAllStudent',
+                    cache : false,  //禁用缓存
+                    data: param,    //传入已封装的参数
+                    dataType: "json",
+                    success: function(result) {
+                        //封装返回数据  如果参数相同，可以直接返回result ，此处作为学习，先这么写了。
+                        var returnData = {};
+                        returnData.draw = result.draw;//这里直接自行返回了draw计数器,应该由后台返回
+                        returnData.recordsTotal = result.recordsTotal;//总记录数
+                        returnData.recordsFiltered = result.recordsFiltered;//后台不实现过滤功能，每次查询均视作全部结果
+                        returnData.data = result.data;
+                        //调用DataTables提供的callback方法，代表数据已封装完成并传回DataTables进行渲染
+                        //此时的数据需确保正确无误，异常判断应在执行此回调前自行处理完毕
+                        callback(returnData);
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown) {
+                        alert("查询失败");
+                    }
+                });
+            },
+            "columns": [
+                {
+                    "sClass": "text-center",
+                    "data": "id",
+                    "render": function (data, type, full, meta) {
+                        return '<input type="checkbox"  class="checkchild"  value="' + data + '" />';
+                    },
+                    "bSortable": false
+                },
+                { "data": "id" },
+                { "data": "name" },
+                { "data": "sex" },
+                { "data": "age" },
+                { "data": "phone" },
+                { "data": "clazzId"},
+                { "data": "majorId"},
+                { "data": "instituteId"}
+            ],
+            columnDefs:[
+                { "orderable": false, "targets": 1 },
+                { "orderable": false, "targets": 2 },
+                { "orderable": false,
+                    "render" : function (data,type,row) {
+                        if(data==1){
+                            return "男";
+                        }else if(data==2){
+                            return "女";
+                        }else {
+                            return "性别不明";
+                        }
+                    },
+                    "targets": 3 },
+                { "orderable": false, "targets": 4 },
+                { "orderable": false, "targets": 5 },
+                { "orderable": false, "targets": 6 },
+                { "orderable": false, "targets": 7 },
+                { "orderable": false, "targets": 8 }
+            ],
+
+        } );
+
+
+
+    } );
+
+    function search(){
+        table.ajax.reload();
+    }
+
+    //封装查询参数
+    function getQueryCondition(data){
+        var param = {};
+        //组装排序参数
+        param.name = $("#name-search").val();//查询条件
+        param.clazzId = $("#clazz-search").val();//查询条件
+        param.majorId = $("#major-search").val();//查询条件
+        param.instituteId = $("#institute-search").val();//查询条件
+        //组装分页参数
+        param.start = data.start;
+        param.length = data.length;
+        param.draw = data.draw;
+        return param;
+    }
+    //初始化学院下拉选择框
+    function initInstituteSelect() {
+        $.ajax({
+            type: "post",
+            url: "/findInstituteList",
+            dataType: "json",
+            success: function (majorList) {
+                debugger;
+                for(var i=0;i<majorList.length;i++){
+                    var data = majorList[i];
+                    var option = "<option value="+data.id+">"+data.name+"</option>";
+                    $("#institute-search").append(option);
+                    $("#instituteId").append(option);
+                    $("#instituteId2").append(option);
+                }
+                //默认为请选择
+                $("#institute-search").append("<option value='-1'>请选择</option>");
+                $("#institute-search").val('-1');
+                $("#instituteId").append("<option value='-1'>请选择</option>");
+                $("#instituteId").val('-1');
+            },
+            //null值不会被success回调函数捕获，因此可以通过error来实现该功能
+            error: function () {
+                alert("失败！");
+            }
+        })
+    }
+    //初始化专业下拉选择框
+    function initmajorSelect() {
+        $.ajax({
+            type: "post",
+            url: "/findMajorList",
+            dataType: "json",
+            success: function (majorList) {
+                debugger;
+                for(var i=0;i<majorList.length;i++){
+                    var data = majorList[i];
+                    var option = "<option value="+data.id+">"+data.name+"</option>";
+                    $("#major-search").append(option);
+                    // $("#majorId").append(option);
+                     $("#majorId2").append(option);
+                    // if(i==0){
+                    //     $("#majorId").val(data.id);
+                    //     $("#majorId2").val(data.id);
+                    // }
+                }
+                //默认为请选择
+                $("#major-search").append("<option value='-1'>请选择</option>");
+                $("#major-search").val('-1');
+            },
+            //null值不会被success回调函数捕获，因此可以通过error来实现该功能
+            error: function () {
+                alert("失败！");
+            }
+        })
+    }
+
+    //初始化班级下拉选择框
+    function initClazzSelect(){
+        $.ajax({
+            type: "post",
+            url: "/findClazzList",
+            dataType: "json",
+            success: function (majorList) {
+                debugger;
+                for(var i=0;i<majorList.length;i++){
+                    var data = majorList[i];
+                    var option = "<option value="+data.id+">"+data.name+"</option>";
+                    $("#clazz-search").append(option);
+                    // $("#majorId").append(option);
+                    //$("#clazzId2").append(option);
+                    // if(i==0){
+                    //     $("#majorId").val(data.id);
+                    //     $("#majorId2").val(data.id);
+                    // }
+                }
+                //默认为请选择
+                $("#clazz-search").append("<option value='-1'>请选择</option>");
+                $("#clazz-search").val('-1');
+            },
+            //null值不会被success回调函数捕获，因此可以通过error来实现该功能
+            error: function () {
+                alert("失败！");
+            }
+        })
+    }
+
+    //添加学生
+    function addStudent() {
+        var instituteId = $("#instituteId").val();
+        var majorId = $("#majorId").val();
+        var clazzId = $("#clazzId").val();
+        var studentName = $("#studentName").val();
+        var sex = $("#sex").val();
+        var age = $("#age").val();
+        var phone = $("#phone").val();
+        var reg = /^1[3456789]\d{9}$/
+        if(majorId == "" || majorId == undefined || majorId == null){
+            return layer.msg('所属专业不能为空', function(){
+                //关闭后的操作
+            });
+        }
+        if(studentName == "" || studentName == undefined || studentName == null){
+            return layer.msg('姓名不能为空', function(){
+                //关闭后的操作
+            });
+        }
+        if(age == "" || age == undefined || age == null){
+            return layer.msg('年龄不能为空', function(){
+                //关闭后的操作
+            });
+        }
+        if(parseInt(age,10)==age && parseInt(age,10)>0 && parseInt(age,10)<200){
+
+        }else {
+            return layer.msg('年龄输入不正确', function(){
+                //关闭后的操作
+            });
+        }
+        if(!reg.test(phone)){
+            return layer.msg('手机号码不正确', function(){
+                //关闭后的操作
+            });
+        }
+        $.ajax({
+            cache: true,
+            type: "POST",
+            url:'/addStudent',
+            data:{"name":studentName,"sex":sex,"age":age,"phone":phone,"clazzId":clazzId,"majorId":majorId,"instituteId":instituteId},
+            async: false,
+            success: function(data) {
+                if(data=="success"){
+                    layer.msg('保存成功');
+                    table.ajax.reload();
+                    $('#addstudent').modal('hide');
+                }else{
+                    layer.msg('保存失败');
+                    $('#addstudent').modal('hide');
+                }
+            }
+        });
+    }
+
+
+    function delById() {
+        var id = $(".checkchild:checked").val();
+        if ($(".checkchild:checked").length < 1)
+        {
+            layer.msg('请选择一条数据');
+            return;
+        }
+        if ($(".checkchild:checked").length > 1)
+        {
+            layer.msg('一次只能删除一条数据');
+            return;
+        }
+        layer.confirm('您确定要删除吗？', {
+            btn: ['确认','取消'] //按钮
+        }, function(){
+            $.ajax({
+                cache: true,
+                type: "POST",
+                url:'/deleteStudentById',
+                data:{id:id},
+                async: false,
+                success: function(data) {
+                    if(data=="success"){
+                        layer.msg('删除成功');
+                        table.ajax.reload();
+                    }else{
+                        layer.msg('删除失败');
+                    }
+                }
+            });
+        });
+    }
+
+    //修改初始化
+    function initUpdateStudent() {
+        var id = $(".checkchild:checked").val();
+        if ($(".checkchild:checked").length < 1)
+        {
+            layer.msg('请选择一条数据');
+            return;
+        }
+        if ($(".checkchild:checked").length > 1)
+        {
+            layer.msg('一次只能修改一条数据');
+            return;
+        }
+        $.ajax({
+            async:false,
+            type : "POST",
+            data:{id:id},
+            url: '/findStudentById',
+            dataType:'json',
+            success: function(data){
+                debugger;
+                $("#instituteId2").val(data.instituteId);
+                $("#majorId2").val(data.majorId);
+                changeInstitute('2',data.majorId);
+                $("#clazzId2").val(data.clazzId);
+                changeMajor('2',data.clazzId);
+                $("#id2").val(data.id);
+                $("#studentName2").val(data.name);
+                $("#sex2").val(data.sex);
+                $("#age2").val(data.age);
+                $("#phone2").val(data.phone);
+            }
+        });
+
+        $('#updatestudent').modal();
+    }
+
+    //修改
+    function updateStudent() {
+        var id = $("#id2").val();
+        var instituteId = $("#instituteId2").val();
+        var majorId = $("#majorId2").val();
+        var clazzId = $("#clazzId2").val();
+        var studentName = $("#studentName2").val();
+        var sex = $("#sex2").val();
+        var age = $("#age2").val();
+        var phone = $("#phone2").val();
+        var reg = /^1[3456789]\d{9}$/
+        if(majorId == "" || majorId == undefined || majorId == null){
+            return layer.msg('所属专业不能为空', function(){
+                //关闭后的操作
+            });
+        }
+        if(studentName == "" || studentName == undefined || studentName == null){
+            return layer.msg('姓名不能为空', function(){
+                //关闭后的操作
+            });
+        }
+        if(!reg.test(phone)){
+            return layer.msg('手机号码不正确', function(){
+                //关闭后的操作
+            });
+        }
+        debugger;
+        $.ajax({
+            cache: false,
+            type: "POST",
+            url:'/updateStudent',
+            data:{"id":id,"name":studentName,"sex":sex,"age":age,"phone":phone,"clazzId":clazzId,"majorId":majorId,"instituteId":instituteId},
+            async: false,
+            success: function(data) {
+                if(data=="success"){
+                    layer.msg('修改成功');
+                    $('#updatestudent').modal('hide'); //隐藏弹出窗口
+                    table.ajax.reload();  //刷新列表
+                }else{
+                    layer.msg('修改失败');
+                    $('#updatestudent').modal('hide');
+                }
+            }
+        })
+    }
+
+    //当学院改变时，查找到对应的专业
+    function changeInstitute(flag,majorValue) {
+        debugger;
+        //获取学院的选中的id
+        var instituteId = '';
+        //清空专业下拉列表的内容
+        if(flag=='2'){
+            $("#majorId2").empty();
+            instituteId = $("#instituteId2 option:selected").val();
+        }else{
+            $("#majorId").empty();
+            instituteId = $("#instituteId option:selected").val();
+        }
+        //异步请求获取该学院下的专业列表
+        //专业下拉列表
+        $.ajax({
+            type: "post",
+            url: "/findMajorList",
+            dataType: "json",
+            data:{"instituteId":instituteId},
+            success: function (instituteList) {
+                for(var i=0;i<instituteList.length;i++){
+                    var data = instituteList[i];
+                    var option = "<option value="+data.id+">"+data.name+"</option>";
+                    if(flag=='2'){
+                        $("#majorId2").append(option);
+                    }else{
+                        $("#majorId").append(option);
+                    }
+
+                }
+                var option = "<option value=-1>请选择</option>";
+                if(flag=='2'){
+                    // $("#majorId option[value='-1']").attr("selected", true);
+                    $("#majorId2").val(majorValue);
+                }else{
+                    $("#majorId").append(option);
+                    $("#majorId option[value='-1']").attr("selected", true);
+                }
+            },
+            //null值不会被success回调函数捕获，因此可以通过error来实现该功能
+            error: function () {
+                alert("专业列表获取失败！");
+            }
+        })
+    }
+    //当专业改变时，查找对应的班级
+    function changeMajor(flag,clazzValue) {
+        debugger;
+        //获取专业的选中的id
+        var majorId = '';
+        //清空班级下拉列表的内容
+        if(flag=='2'){
+            $("#clazzId2").empty();
+            majorId = $("#majorId2 option:selected").val();
+        }else{
+            $("#clazzId").empty();
+            majorId = $("#majorId option:selected").val();
+        }
+        //异步请求获取该专业下的班级列表
+        $.ajax({
+            type: "post",
+            url: "/findClazzList",
+            dataType: "json",
+            data:{"majorId":majorId},
+            success: function (majorList) {
+                for(var i=0;i<majorList.length;i++){
+                    var data = majorList[i];
+                    var option = "<option value="+data.id+">"+data.name+"</option>";
+                    if(flag=='2'){
+                        $("#clazzId2").append(option);
+                    }else{
+                        $("#clazzId").append(option);
+                    }
+
+                }
+                var option = "<option value=-1>请选择</option>";
+                if(flag=='2'){
+                    // $("#majorId option[value='-1']").attr("selected", true);
+                    $("#clazzId2").val(clazzValue);
+                }else{
+                    $("#clazzId").append(option);
+                    $("#clazzId option[value='-1']").attr("selected", true);
+                }
+            },
+            //null值不会被success回调函数捕获，因此可以通过error来实现该功能
+            error: function () {
+                alert("班级列表获取失败！");
+            }
+        })
+    }
+</script>
+
+</body>
+</html>

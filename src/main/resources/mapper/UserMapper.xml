@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qxf.mapper.UserMapper">
+
+    <!--修改用户-->
+    <update id="updateUser" parameterType="com.qxf.pojo.User">
+        UPDATE user SET username=#{username},user_type=#{userType},enable=#{enable} where id=#{id}
+    </update>
+
+    <!--根据id查找用户-->
+    <select id="getUserById" parameterType="string" resultType="com.qxf.pojo.User">
+        select id,username,user_type userType,enable from user where id=#{id}
+    </select>
+        <!-- 添加用户-->
+    <insert id="addUser" parameterType="com.qxf.pojo.User">
+    	insert into user(id,username,password,user_type,enable)
+    	values(#{id},#{username},#{password},#{userType},#{enable})
+    </insert>
+    
+    <!-- 查找用户 -->
+    <select id="findUser" parameterType="com.qxf.pojo.User" resultType="com.qxf.pojo.User">
+    	select * from user where username=#{username} and password=#{password} and enable=#{enable}
+    </select>
+
+    <delete id="deleteUserById" parameterType="string">
+        DELETE from user where id=#{userId}
+    </delete>
+
+    <!-- 查找用户类型列表 -->
+    <select id="findUserTypeList" resultType="com.qxf.pojo.TSysDict">
+        select dict_code dictCode,dict_value dictValue from t_sys_dict where dict_type_code='USERTYPE' order by dict_order
+    </select>
+
+    <!-- 查找是否列表 -->
+    <select id="findEnableList" resultType="com.qxf.pojo.TSysDict">
+        select dict_code dictCode,dict_value dictValue from t_sys_dict where dict_type_code='YESNO' order by dict_order
+    </select>
+
+    <resultMap id="BaseResultMap" type="com.qxf.pojo.User">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="username" jdbcType="VARCHAR" property="username" />
+        <result column="password" jdbcType="VARCHAR" property="password" />
+        <result column="userType" jdbcType="INTEGER" property="user_type" />
+        <result column="enable" jdbcType="INTEGER" property="enable" />
+    </resultMap>
+</mapper>
